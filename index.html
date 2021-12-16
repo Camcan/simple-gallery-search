@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <div>
+      <input id="image-search-input" onchange="searchImages(this.value)"/>
+    </div>
+
+    <script>
+      function searchImages(query) {
+        fetch('/api/data', {
+          method: 'POST',
+          body: JSON.stringify({ query }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.text())
+        .then(data => console.log(data))
+        .catch(err => console.error(err))
+      };
+      searchImages('');
+    </script>
+  </body>
+</html>

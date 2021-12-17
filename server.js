@@ -117,31 +117,30 @@ const words = [
 
 const imageUrls = [
  'https://via.placeholder.com/350x150/0000FF/808080',
- 'https://via.placeholder.com/150x350/0000FF/808080',
+ 'https://via.placeholder.com/150x350/FF0000/808080',
  'https://via.placeholder.com/150/FFFF00/000000'
 ]
 
-const imageData = words.reduce((acc, w, i) => {
-  if (!i % 2) return acc;
-
+const mockImageData = words.reduce((acc, w, i) => {
+  console.log(i, i % 4, imageUrls[i % 3]);
   return [
     ...acc,
     {
       name: [w, words[i-1]].join(' '),
-      imageUrl: imageUrls[i % 4]
+      imageUrl: imageUrls[i % 3]
     }
   ];
 }, []);
 
 
 function searchImages({ query }) {
-  if (!query) return imageData;
+  if (!query) return mockImageData;
 
   const queryParts = query
     .trim()
     .split(' ');
 
-  return imageData.filter(({ name }) => {
+  return mockImageData.filter(({ name }) => {
     // Matches if no query parts are absent from the name
     return !queryParts.find(part => !name.includes(part));
   })

@@ -3,7 +3,7 @@
   <head>
     <style type="text/css">
       .image-search {
-        width: 400px;
+        max-width: 410px;
         font-family: sans-serif;
         display: flex;
         flex-direction: column;
@@ -36,13 +36,18 @@
       .image-search__results {
         border-radius: 8px;
         border: 1px solid #dddddd;
+        box-shadow: 0 0 8px #dddddd; 
+      }
+
+      .image-search__results__container {
+        max-height: 240px;
+        overflow-y: auto;
       }
 
       .image-search__results__list {
         display: flex;
         flex-flow: row wrap;
-        max-height: 230px;
-        overflow-y: auto;
+        padding: 8px;
       }
 
       .image-search__results__item {
@@ -55,6 +60,14 @@
         font: inherit;
         cursor: pointer;
         outline: inherit;
+        transition: opacity 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border-radius: 4px;
+      }
+
+      .image-search__results__item:focus,
+      .image-search__results__item:hover {
+        opacity: 0.9;
+        box-shadow: 0 0 8px #dddddd; 
       }
 
       .image-search__results__item__label {
@@ -82,6 +95,8 @@
       .image-search__results__summary {
         margin: 8px 0 4px;
         text-align: center;
+        font-size: 12px;
+        font-weight: 600;
       }
     </style>
   </head>
@@ -92,22 +107,36 @@
           class="search-icon"
           aria-hidden="true"
           focusable="false"
-          data-prefix="fas"
-          data-icon="search"
           role="img"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512">
           <path fill="currentColor" d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/>
         </svg>
-        <input class="search-input" oninput="searchImages(this.value)"/>
+        <input
+          class="search-input"
+          oninput="debounce(searchImages, 200)(this.value)"
+          placeholder="Search images..."
+        />
       </div>
       <div class="image-search__results">
-        <div class="image-search__results__list"></div>
+        <div class="image-search__results__container">
+          <div class="image-search__results__list"></div>
+        </div>
         <div class="image-search__results__summary"></div>
       </div>
     </div>
 
     <script>
+      function debounce(callback, delay) {
+        let timeoutId = null;
+
+        return (...args) => {
+          window.clearTimeout(timeoutId);
+          timeoutId = window.setTimeout(() => {
+            callback.apply(null, args);
+          }, delay);
+        };
+      }
       function searchImages(query) {
         fetch('/api/data', {
           method: 'POST',
@@ -115,23 +144,28 @@
           headers: { 'Content-Type': 'application/json' }
         })
         .then(res => res.json())
-          .then(images => {
-            const resultsContainer = document.querySelector('#example-image-search .image-search__results__list');
+          .then(({ images, count }) => {
+            console.log(images, count);
+            const resultsContainer = document.querySelector('#example-image-search .image-search__results__container');
             const summaryText = document.querySelector('#example-image-search .image-search__results__summary'); 
-            const resultsList = images.map(({ name, imageUrl }) => {
-              return `
-                <button class="image-search__results__item">
-                  <div class="image-search__results__item__image-container">
-                    <img src=${imageUrl} />
-                  </div>
-                  <span class="image-search__results__item__label">
-                    ${name}
-                  </span>
-                </button>
-              `;
-            }).join('');
+            const resultsList = `
+              <div class="image-search__results__list">
+                ${images.map(({ name, imageUrl }) => {
+                  return `
+                    <button class="image-search__results__item">
+                      <div class="image-search__results__item__image-container">
+                        <img src=${imageUrl} />
+                      </div>
+                      <span class="image-search__results__item__label">
+                        ${name}
+                      </span>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            `;
             resultsContainer.innerHTML = resultsList;
-            summaryText.innerHTML = `${images.length} found`;
+            summaryText.innerHTML = `${count} found`;
           })
         .catch(err => console.error(err))
       };

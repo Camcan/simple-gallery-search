@@ -122,7 +122,6 @@ const imageUrls = [
 ]
 
 const mockImageData = words.reduce((acc, w, i) => {
-  console.log(i, i % 4, imageUrls[i % 3]);
   return [
     ...acc,
     {
@@ -134,15 +133,21 @@ const mockImageData = words.reduce((acc, w, i) => {
 
 
 function searchImages({ query }) {
-  if (!query) return mockImageData;
+  if (!query) return {
+    images: mockImageData,
+    count: mockImageData.length
+  };
 
   const queryParts = query
     .trim()
     .split(' ');
-
-  return mockImageData.filter(({ name }) => {
+  const results = mockImageData.filter(({ name }) => {
     // Matches if no query parts are absent from the name
     return !queryParts.find(part => !name.includes(part));
-  })
-};
+  });
 
+  return {
+    images: results,
+    count: results.length
+  };
+};
